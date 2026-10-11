@@ -95,7 +95,7 @@ def stage(backup):
     size = archive.stat().st_size
     with tarfile.open(archive) as tar:
         expanded = sum(m.size for m in tar.getmembers())
-    available = int(shell("df -k /data | tail -1 | awk '{print $4}'")) * 1024
+    available = int(shell('df -k /data').splitlines()[-1].split()[3]) * 1024
     if available < size + expanded + 128 * 1024 * 1024:
         raise RuntimeError('Insufficient space for package and 128 MiB reserve')
     credentials = json.loads((PRIVATE / 'nspanel_og_essen_z2m.mqtt.json').read_text())
