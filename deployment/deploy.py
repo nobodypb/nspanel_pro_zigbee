@@ -33,7 +33,7 @@ def mqtt_login(credentials):
         length.append(digit | (128 if remaining else 0))
         if not remaining:
             break
-    with socket.create_connection((credentials['host'], credentials['port']), timeout=5) as s:
+    with socket.create_connection((credentials.get('probe_host', credentials['host']), credentials['port']), timeout=5) as s:
         s.sendall(b'\x10' + length + body)
         response = b''
         while len(response) < 4:

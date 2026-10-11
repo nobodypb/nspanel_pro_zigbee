@@ -21,7 +21,9 @@ Existing networks must be inventoried before activation. Do not migrate unknown
 paired devices automatically.
 
 The two `~/.config/nspanel/*.mqtt.json` files contain `host`, `port`, `username`,
-and `password`. Never commit these files. The directory also contains the private
+and `password`. Optional `probe_host` is used only by workstation login checks when
+the panel reaches the same broker through NAT. The panel uses `host` directly.
+Never commit these files. The directory also contains the private
 broker ACL/setup instructions and the app-specific Android ID. The broker owner
 adds the accounts and rules without replacing existing listeners or users.
 
