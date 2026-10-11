@@ -1,0 +1,5 @@
+#!/data/data/com.termux/files/usr/bin/sh
+# Run before the existing boot.sh starts runit. The wake-lock action also keeps
+# TermuxService in the foreground so Android does not reap its child services
+# as an empty app after 30 minutes. This holds the CPU, not the display.
+/data/data/com.termux/files/usr/bin/termux-wake-lock
