@@ -101,3 +101,21 @@ that group from Termux; validate connectivity through the actual service.
 Pro Tools 2.3.4-beta3 custom screen-off resets its timer on its touch/proximity
 events. External ADB or app wake actions do not themselves arm that timer. Record
 physical wake and timeout observations separately from synthetic wake tests.
+
+## Android background lifetime
+
+The firmware's existing boot script comments out `termux-wake-lock`. Without a
+foreground TermuxService, Android 8.1 reaps the empty Termux app and its service
+processes after about 30 minutes. Install `deployment/00-nspanel-wake-lock` as
+`/data/data/com.termux/files/home/.termux/boot/00-nspanel-wake-lock`, owned by
+Termux with mode 0700, after a fresh private backup. Sorted boot order runs it
+before the existing `boot.sh`; that script remains unchanged. The Termux wake
+lock holds the CPU and starts a foreground service, without keeping the screen
+on. This follows the upstream Termux:Boot service example:
+https://github.com/termux/termux-boot#examples
+
+Verify `TermuxService` is foreground, its partial wake lock is present, runit and
+Z2M survive with the display off, and the next real boot starts them correctly.
+For rollback, restore the original boot directory from the private backup and
+use `termux-wake-unlock` if this deployment introduced the lock. Do not stop or
+reconfigure the SONOFF broker as part of this fix.
