@@ -155,8 +155,10 @@ def activate():
     service('down', 'cube')
     try:
         # Refuse to start if another process still owns the serial radio.
-        owners = shell('for f in /proc/[0-9]*/fd/*; do t=$(readlink "$f" 2>/dev/null); '
-                       'if [ "$t" = /dev/ttyS5 ]; then echo "$f"; fi; done')
+        # One toolbox invocation: a readlink subprocess per system fd takes over
+        # a minute on this panel and can time out despite an unused UART.
+        owners = shell('ls -l /proc/[0-9]*/fd/* 2>/dev/null | '
+                       'grep " -> /dev/ttyS5$" || true', timeout=15)
         if owners:
             raise RuntimeError('Serial radio remains open; activation stopped')
         shell('rm -f ' + SERVICE + '/down')
