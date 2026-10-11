@@ -122,6 +122,8 @@ def stage(backup):
         result = shell('su ' + uid + ' env LD_LIBRARY_PATH=' + RUNTIME + '/nodejs/lib ' + RUNTIME + '/nodejs/bin/node --version')
         if not result.startswith('v24.'):
             raise RuntimeError('Unexpected bundled Node runtime')
+        push_private(ROOT / 'deployment/00-nspanel-wake-lock',
+                     '/data/data/com.termux/files/home/.termux/boot/00-nspanel-wake-lock', uid, '700')
         manifest = {'commit': commit, 'base_commit': BASE_COMMIT, 'node_version': result,
                     'archive_sha256': hashlib.sha256(archive.read_bytes()).hexdigest(),
                     'backup': str(backup), 'runtime': RUNTIME, 'service': SERVICE,
@@ -150,6 +152,10 @@ def activate():
     manifest = json.loads((PRIVATE / 'z2m-deployment.json').read_text())
     if manifest['status'] not in ['staged-down', 'stopped']:
         raise RuntimeError('Activation state is not staged-down/stopped')
+    # A foreground TermuxService protects runit's process group from Android's
+    # 30-minute empty-app cleanup. A partial wake lock does not light the display.
+    shell('am start-foreground-service --user 0 -a com.termux.service_wake_lock '
+          '-n com.termux/com.termux.app.TermuxService')
     cube = PREFIX + '/var/service/cube'
     shell('touch ' + cube + '/down')
     service('down', 'cube')
