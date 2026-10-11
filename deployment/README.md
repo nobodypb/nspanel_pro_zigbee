@@ -83,3 +83,21 @@ user present. Read actual model/firmware and exposes. Bind remote endpoint 1 to 
 controller's group for `genOnOff`/`genLevelCtrl`; verify operation with Z2M stopped.
 Only this provided LED installation may be actuated. No device firmware updates.
 HA and the existing develop light sheet provide brightness and color temperature.
+
+## Read-only observation
+
+After interactive tests, run `node deployment/observe.js /absolute/path/to/soak.jsonl`
+from the integrated develop checkout. It subscribes only to the coordinator's
+retained availability and samples panel process/display status every five minutes,
+then exits after 24 hours. It never enables joining or actuates devices. An initial
+retained `online` alone is not a completed soak; inspect the whole observation,
+including observer disconnects and ADB failures. Credentials are read privately
+and never logged. `probe_host` selects the workstation-side broker address.
+
+On the tested Android firmware, manually running a client with `su 10056` drops
+the supplementary INET group and yields EACCES. The real runit service inherits
+that group from Termux; validate connectivity through the actual service.
+
+Pro Tools 2.3.4-beta3 custom screen-off resets its timer on its touch/proximity
+events. External ADB or app wake actions do not themselves arm that timer. Record
+physical wake and timeout observations separately from synthetic wake tests.
