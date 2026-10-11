@@ -57,6 +57,7 @@ def backup(destination):
         '/data/data/com.eWeLinkControlPanel/shared_prefs',
         '/data/data/' + APP + '/shared_prefs',
         '/data/data/' + APP + '/app_flutter',
+        RUNTIME + '/data', SERVICE + '/run', SERVICE + '/down', SERVICE + '/log/run',
     ]
     present = [p for p in paths if shell('test -e ' + shlex.quote(p) + ' && echo yes || true') == 'yes']
     archive = destination / 'before.tar.gz'
