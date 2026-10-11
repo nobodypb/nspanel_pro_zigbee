@@ -1,0 +1,43 @@
+#!/system/bin/sh
+# Owned by the existing Termux runit supervisor; never starts/stops another service.
+set -u
+umask 077
+NSP_ROOT=${NSP_ROOT:-/data/local/nspanel_tools_pkg/z2m}
+NSP_NODE=${NSP_NODE:-$NSP_ROOT/nodejs/bin/node}
+NSP_CLOCK=${NSP_CLOCK:-date}
+NSP_SLEEP=${NSP_SLEEP:-sleep}
+export LD_LIBRARY_PATH="$NSP_ROOT/nodejs/lib"
+export ZIGBEE2MQTT_DATA="$NSP_ROOT/data"
+cd "$NSP_ROOT/z2m" || exit 1
+child=
+stop() {
+    trap '' TERM INT
+    if [ -n "$child" ]; then
+        kill -TERM "$child" 2>/dev/null || true
+        wait "$child" 2>/dev/null || true
+    fi
+    exit 0
+}
+trap stop TERM INT
+delay=5
+if [ -f "$NSP_ROOT/retry-delay" ]; then
+    read -r delay < "$NSP_ROOT/retry-delay"
+fi
+case "$delay" in 5|10|20|40|60) ;; *) delay=5 ;; esac
+started=$($NSP_CLOCK +%s)
+"$NSP_NODE" "$NSP_ROOT/z2m/index.js" &
+child=$!
+wait "$child"
+result=$?
+child=
+ended=$($NSP_CLOCK +%s)
+if [ "$((ended - started))" -ge 60 ]; then delay=5; fi
+next=$((delay * 2))
+if [ "$next" -gt 60 ]; then next=60; fi
+printf '%s\n' "$next" > "$NSP_ROOT/retry-delay"
+echo "Z2M exited ($result); retry in ${delay}s"
+"$NSP_SLEEP" "$delay" &
+child=$!
+wait "$child"
+child=
+exit "$result"
